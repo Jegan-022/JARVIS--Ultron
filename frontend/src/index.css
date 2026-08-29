@@ -1,0 +1,345 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #02040a;
+  --line: rgba(140, 180, 255, 0.18);
+  --text: rgba(220, 232, 255, 0.82);
+  --muted: rgba(160, 180, 210, 0.55);
+  --ok: #7dffc3;
+  --wait: #8eb4ff;
+  --err: #ff8b8b;
+  --font: 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+  --mono: 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.app-shell {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  background: #02040a;
+}
+
+.universe-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hud {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.hud-top,
+.hud-left,
+.hud-right,
+.hud-bottom {
+  position: absolute;
+}
+
+.hud button,
+.hud a,
+.hud input,
+.hud select,
+.hud [role='button'],
+.hud-top button,
+.hud-left button,
+.hud-right button,
+.hud-bottom button {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+.hud-top {
+  top: 18px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+  pointer-events: none;
+}
+
+.hud-mark {
+  margin: 0;
+  letter-spacing: 0.42em;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hud-sub {
+  margin: 6px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+}
+
+.hud-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  pointer-events: auto;
+}
+
+.hud-left {
+  top: 88px;
+  left: 24px;
+  width: min(280px, 28vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.hud-left > * {
+  pointer-events: auto;
+}
+
+.hud-right {
+  top: 88px;
+  right: 24px;
+  width: min(280px, 28vw);
+  border: 1px solid var(--line);
+  background: rgba(4, 10, 22, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 14px 16px;
+  pointer-events: auto;
+  z-index: 3;
+}
+
+.hud-bottom {
+  left: 24px;
+  right: 24px;
+  bottom: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  pointer-events: auto;
+}
+
+.hud-bottom p {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+
+.hud-bottom span {
+  display: inline-block;
+  width: 72px;
+  color: var(--text);
+  letter-spacing: 0.18em;
+  font-size: 10px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.status-dot.online {
+  background: var(--ok);
+  color: var(--ok);
+}
+
+.status-dot.standby {
+  background: var(--wait);
+  color: var(--wait);
+}
+
+.status-dot.error {
+  background: var(--err);
+  color: var(--err);
+}
+
+.sys-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.sys-label {
+  color: var(--text);
+}
+
+.sys-detail {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.panel-title {
+  margin: 0 0 12px;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+}
+
+.metrics {
+  margin: 0;
+}
+
+.metrics > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.metrics dt {
+  color: var(--muted);
+}
+
+.metrics dd {
+  margin: 0;
+}
+
+.object-card {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.object-name {
+  margin: 0 0 4px;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+}
+
+.object-desc {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.panel-idle,
+.phase-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  line-height: 1.45;
+}
+
+.boot-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, rgba(8, 16, 36, 0.8), #02040a 75%);
+}
+
+.boot-panel {
+  width: min(520px, 86vw);
+}
+
+.boot-title {
+  letter-spacing: 0.38em;
+  font-size: 14px;
+  margin: 0 0 28px;
+}
+
+.boot-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.boot-lines li {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.boot-dots {
+  border-bottom: 1px dotted rgba(140, 180, 255, 0.35);
+  transform: translateY(-6px);
+}
+
+.boot-lines .ok {
+  color: var(--ok);
+}
+
+.boot-lines .wait {
+  color: var(--wait);
+}
+
+.boot-note {
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.debug-overlay {
+  pointer-events: none;
+  position: absolute;
+  left: 24px;
+  bottom: 88px;
+  z-index: 4;
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(2, 6, 14, 0.85);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: #c5d8ff;
+}
+
+@media (max-width: 1100px) {
+  .hud-left,
+  .hud-right {
+    width: min(240px, 32vw);
+  }
+  .hud-mark {
+    letter-spacing: 0.28em;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 800px) {
+  .hud-right {
+    display: none;
+  }
+  .hud-left {
+    width: auto;
+  }
+}
