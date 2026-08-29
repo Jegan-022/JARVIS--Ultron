@@ -10,6 +10,25 @@ SCENE_METADATA: dict[str, dict[str, Any]] = {
         "orbital_period": "365.25 days",
         "satellites": ["Moon", "ISS"],
     },
+    "moon": {
+        "id": "moon",
+        "name": "The Moon",
+        "type": "satellite",
+        "description": "Earth's sole natural satellite at a mean orbital distance of 384,400 km. Tidally locked with a synchronous orbital period of 27.3 days.",
+    },
+    "mercury": {
+        "id": "mercury",
+        "name": "Mercury",
+        "type": "planet",
+        "description": "Innermost rocky world with extreme diurnal temperature variations (-180°C to +430°C). Orbital period: 88 Earth days.",
+    },
+    "venus": {
+        "id": "venus",
+        "name": "Venus",
+        "type": "planet",
+        "description": "Second terrestrial world shrouded in dense sulfuric acid clouds with surface atmospheric pressure 92 times that of Earth.",
+        "orbital_period": "225 days",
+    },
     "mars": {
         "id": "mars",
         "name": "Mars",
@@ -27,7 +46,7 @@ SCENE_METADATA: dict[str, dict[str, Any]] = {
         "id": "jupiter",
         "name": "Jupiter",
         "type": "planet",
-        "description": "Fifth planet from the Sun and largest in the Solar System. Known for its Great Red Spot and prominent magnetic field.",
+        "description": "Fifth planet from the Sun and largest in the Solar System. Known for its Great Red Spot and prominent magnetic field with 95 natural satellites.",
     },
     "saturn": {
         "id": "saturn",
@@ -35,11 +54,35 @@ SCENE_METADATA: dict[str, dict[str, Any]] = {
         "type": "planet",
         "description": "Sixth planet from the Sun with prominent icy ring systems composed of countless dust and rock particles.",
     },
+    "uranus": {
+        "id": "uranus",
+        "name": "Uranus",
+        "type": "planet",
+        "description": "Seventh planet and ice giant with extreme 97.77° axial tilt. Cyan coloration caused by atmospheric methane.",
+    },
+    "neptune": {
+        "id": "neptune",
+        "name": "Neptune",
+        "type": "planet",
+        "description": "Outermost ice giant in the solar system, featuring supersonic wind speeds reaching 2,100 km/h.",
+    },
+    "pluto": {
+        "id": "pluto",
+        "name": "Pluto",
+        "type": "dwarf_planet",
+        "description": "Kuiper Belt dwarf planet featuring nitrogen ice glaciers and the heart-shaped Tombaugh Regio.",
+    },
     "core": {
         "id": "core",
         "name": "Galactic Core",
         "type": "core",
-        "description": "Supermassive luminous gravitational epicenter of the ULTRON galaxy visualization matrix.",
+        "description": "Supermassive luminous gravitational epicenter with a relativistic golden accretion disk.",
+    },
+    "iss-station": {
+        "id": "iss-station",
+        "name": "Orbital Station Alpha",
+        "type": "satellite",
+        "description": "Low-Earth orbit relay station and Stark sensor array orbiting at an altitude of 408 kilometers.",
     },
 }
 
@@ -72,7 +115,7 @@ class ChangeSceneTool(BaseTool):
         return {
             "success": True,
             "scene": target,
-            "message": f"Transitioned spatial environment to {target}.",
+            "message": f"Transitioned spatial environment to {target.replace('_', ' ')}.",
         }
 
 
@@ -129,7 +172,7 @@ class ZoomSceneTool(BaseTool):
 
     async def execute(self, params: dict[str, Any], context: dict[str, Any] | None = None) -> dict[str, Any]:
         direction = params.get("direction", "in")
-        amount = params.get("amount", 10.0)
+        amount = params.get("amount", 15.0)
         return {
             "success": True,
             "direction": direction,
@@ -194,7 +237,7 @@ class ShowInformationTool(BaseTool):
                 "id": target,
                 "name": target.capitalize(),
                 "type": "entity",
-                "description": f"Spatial node '{target}' actively analyzed by ULTRON.",
+                "description": f"Spatial node '{target}' actively analyzed by J.A.R.V.I.S.",
             },
         )
 
@@ -202,5 +245,5 @@ class ShowInformationTool(BaseTool):
             "success": True,
             "target": target,
             "information": info,
-            "message": f"Retrieved information for {info.get('name', target)}: {info.get('description', '')}",
+            "message": f"{info.get('name', target)}: {info.get('description', '')}",
         }

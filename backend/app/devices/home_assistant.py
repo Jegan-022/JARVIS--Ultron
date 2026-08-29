@@ -8,7 +8,7 @@ class HomeAssistantClient:
         self.url = settings.home_assistant_url.rstrip("/")
         self.token = settings.home_assistant_token
 
-    def is_configured(self) -> boolean if False else bool:
+    def is_configured(self) -> bool:
         return bool(self.url and self.token)
 
     async def call_service(self, domain: str, service: str, entity_id: str, **kwargs: Any) -> dict[str, Any]:

@@ -21,7 +21,7 @@ const vertexShader = /* glsl */ `
     vColor = aColor;
     vec3 pos = position;
     float dist = length(pos.xz) + 0.001;
-    float angle = uTime * uSpin * (1.2 / (dist * 0.08 + 1.0));
+    float angle = uTime * uSpin * (1.4 / (dist * 0.06 + 1.0));
     float c = cos(angle);
     float s = sin(angle);
     float x = pos.x * c - pos.z * s;
@@ -29,7 +29,7 @@ const vertexShader = /* glsl */ `
     pos.x = x;
     pos.z = z;
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = aSize * uPixelRatio * (90.0 / max(1.0, -mvPosition.z));
+    gl_PointSize = aSize * uPixelRatio * (100.0 / max(1.0, -mvPosition.z));
     gl_Position = projectionMatrix * mvPosition;
   }
 `
@@ -40,7 +40,7 @@ const fragmentShader = /* glsl */ `
     vec2 uv = gl_PointCoord - vec2(0.5);
     float d = length(uv);
     if (d > 0.5) discard;
-    float alpha = smoothstep(0.5, 0.08, d);
+    float alpha = smoothstep(0.5, 0.04, d);
     gl_FragColor = vec4(vColor, alpha);
   }
 `
@@ -70,7 +70,7 @@ function ParticleCloud({
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      uPixelRatio: { value: Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2) },
       uSpin: { value: spin },
     }),
     [spin],
@@ -98,65 +98,69 @@ function ParticleCloud({
 }
 
 export function StarField() {
-  const data = useMemo(() => createStarField(7000), [])
+  const data = useMemo(() => createStarField(9500), [])
   return (
     <ParticleCloud
       positions={data.positions}
       colors={data.colors}
       sizes={data.sizes}
-      spin={0.001}
+      spin={0.0008}
     />
   )
 }
 
 export function GalaxySpiral() {
-  const spiral = useMemo(() => createSpiralGalaxy(22000), [])
-  const clusterA = useMemo(() => createCluster(1800, [22, 2, -16], 4.5, '#6ec8ff'), [])
-  const clusterB = useMemo(() => createCluster(1400, [-18, -1, 20], 3.6, '#c9a0ff'), [])
-  const clusterC = useMemo(() => createCluster(1200, [8, 3, 24], 3.2, '#8cffd4'), [])
+  const spiral = useMemo(() => createSpiralGalaxy(32000), [])
+  const clusterA = useMemo(() => createCluster(2200, [24, 2, -18], 5.0, '#38bdf8'), [])
+  const clusterB = useMemo(() => createCluster(1800, [-20, -1, 22], 4.2, '#f59e0b'), [])
+  const clusterC = useMemo(() => createCluster(1500, [10, 3, 26], 3.8, '#a855f7'), [])
 
   return (
     <group>
-      <ParticleCloud positions={spiral.positions} colors={spiral.colors} sizes={spiral.sizes} />
+      <ParticleCloud positions={spiral.positions} colors={spiral.colors} sizes={spiral.sizes} spin={0.012} />
       <ParticleCloud
         positions={clusterA.positions}
         colors={clusterA.colors}
         sizes={clusterA.sizes}
-        spin={0.04}
+        spin={0.035}
       />
       <ParticleCloud
         positions={clusterB.positions}
         colors={clusterB.colors}
         sizes={clusterB.sizes}
-        spin={0.035}
+        spin={0.03}
       />
       <ParticleCloud
         positions={clusterC.positions}
         colors={clusterC.colors}
         sizes={clusterC.sizes}
-        spin={0.03}
+        spin={0.028}
       />
     </group>
   )
 }
 
 export function GalaxyCore() {
-  const glow = useMemo(() => new Color('#b8d4ff'), [])
+  const glow = useMemo(() => new Color('#fde68a'), [])
+
   return (
     <group>
+      {/* Supermassive Black Hole event horizon core */}
       <mesh>
-        <sphereGeometry args={[1.15, 32, 32]} />
-        <meshBasicMaterial color="#eaf2ff" />
+        <sphereGeometry args={[1.25, 32, 32]} />
+        <meshBasicMaterial color="#fffbeb" />
       </mesh>
+      {/* Golden relativistic accretion glow */}
       <mesh>
-        <sphereGeometry args={[2.4, 32, 32]} />
-        <meshBasicMaterial color={glow} transparent opacity={0.18} />
+        <sphereGeometry args={[2.8, 32, 32]} />
+        <meshBasicMaterial color={glow} transparent opacity={0.22} />
       </mesh>
+      {/* Outer halo */}
       <mesh>
-        <sphereGeometry args={[4.2, 32, 32]} />
-        <meshBasicMaterial color="#7aa8ff" transparent opacity={0.06} />
+        <sphereGeometry args={[4.8, 32, 32]} />
+        <meshBasicMaterial color="#f59e0b" transparent opacity={0.07} />
       </mesh>
-      <pointLight color="#cfe4ff" intensity={18} distance={40} decay={2} />
+      <pointLight color="#fef3c7" intensity={22} distance={55} decay={2} />
     </group>
   )
 }

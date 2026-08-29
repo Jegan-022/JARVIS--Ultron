@@ -1,6 +1,8 @@
+import { speechQueue, type SpeechPriority } from './SpeechSynthesisQueue'
+
 export interface VoiceMessage {
   id: string
-  speaker: 'user' | 'ultron'
+  speaker: 'user' | 'jarvis'
   text: string
   timestamp: number
 }
@@ -11,6 +13,7 @@ interface SpeechRecognitionEventLike extends Event {
     [index: number]: {
       [index: number]: {
         transcript: string
+        confidence: number
       }
       isFinal: boolean
     }
@@ -39,12 +42,14 @@ declare global {
 
 export class VoiceManager {
   private recognition: SpeechRecognitionLike | null = null
-  private synth: SpeechSynthesis | null = null
   private isListening = false
-  private wakeWord = 'ultron'
+  private wakeWord = 'jarvis'
   private onTranscriptCallbacks: Array<(text: string, isFinal: boolean) => void> = []
   private onCommandCallbacks: Array<(command: string) => void> = []
   private onErrorCallbacks: Array<(error: string) => void> = []
+  private onSpeakingChangeCallbacks: Array<(speaking: boolean) => void> = []
+  private restartDebounce: number | null = null
+  private minConfidence = 0.4 // Ignore very low-confidence results
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -63,6 +68,13 @@ export class VoiceManager {
 
           for (let i = 0; i < event.results.length; i++) {
             const res = event.results[i]
+            const confidence = res[0].confidence ?? 1.0
+
+            // Filter low-confidence interim results
+            if (!res.isFinal && confidence < this.minConfidence) {
+              continue
+            }
+
             if (res.isFinal) {
               finalTranscript += res[0].transcript
             } else {
@@ -83,25 +95,38 @@ export class VoiceManager {
         }
 
         this.recognition.onerror = (e) => {
-          console.warn('Speech recognition error:', e.error)
-          this.onErrorCallbacks.forEach((cb) => cb(e.error || 'STT error'))
+          const error = e.error || 'STT error'
+          // Don't report 'no-speech' or 'aborted' as real errors
+          if (error === 'no-speech' || error === 'aborted') return
+          console.warn('Speech recognition error:', error)
+          this.onErrorCallbacks.forEach((cb) => cb(error))
         }
 
         this.recognition.onend = () => {
-          // Auto-restart if listening was not explicitly stopped
+          // Debounced auto-restart if listening was not explicitly stopped
           if (this.isListening) {
-            try {
-              this.recognition?.start()
-            } catch {
-              // ignore restart error
+            if (this.restartDebounce) {
+              window.clearTimeout(this.restartDebounce)
             }
+            this.restartDebounce = window.setTimeout(() => {
+              if (!this.isListening) return
+              try {
+                this.recognition?.start()
+              } catch {
+                // ignore restart error
+              }
+            }, 200)
           }
         }
       }
 
-      if ('speechSynthesis' in window) {
-        this.synth = window.speechSynthesis
-      }
+      // Wire up speech queue speaking state callbacks
+      speechQueue.onSpeakStart(() => {
+        this.onSpeakingChangeCallbacks.forEach((cb) => cb(true))
+      })
+      speechQueue.onSpeakEnd(() => {
+        this.onSpeakingChangeCallbacks.forEach((cb) => cb(false))
+      })
     }
   }
 
@@ -122,6 +147,10 @@ export class VoiceManager {
 
   stopListening(): void {
     this.isListening = false
+    if (this.restartDebounce) {
+      window.clearTimeout(this.restartDebounce)
+      this.restartDebounce = null
+    }
     if (this.recognition) {
       try {
         this.recognition.stop()
@@ -131,34 +160,38 @@ export class VoiceManager {
     }
   }
 
-  speak(text: string): Promise<void> {
+  /**
+   * Speak text through the priority queue system.
+   * Supports priority levels: 'low', 'normal', 'high', 'urgent'
+   */
+  speak(text: string, priority: SpeechPriority = 'normal'): Promise<void> {
     return new Promise((resolve) => {
-      if (!this.synth) {
-        console.log('[TTS fallback]', text)
-        return resolve()
-      }
-
-      this.synth.cancel() // Cancel any ongoing speech
-
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 1.05
-      utterance.pitch = 0.95 // Slightly deeper futuristic tone
-
-      // Try selecting a modern English voice
-      const voices = this.synth.getVoices()
-      const preferredVoice =
-        voices.find((v) => v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('David')) ||
-        voices[0]
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice
-      }
-
-      utterance.onend = () => resolve()
-      utterance.onerror = () => resolve()
-
-      this.synth.speak(utterance)
+      speechQueue.enqueue(text, {
+        priority,
+        onEnd: resolve,
+      })
     })
+  }
+
+  /**
+   * Immediately interrupt current speech and speak this instead.
+   */
+  speakUrgent(text: string): Promise<void> {
+    return this.speak(text, 'urgent')
+  }
+
+  /**
+   * Cancel all queued and current speech.
+   */
+  cancelSpeech(): void {
+    speechQueue.cancelAll()
+  }
+
+  /**
+   * Check if JARVIS is currently speaking.
+   */
+  isSpeaking(): boolean {
+    return speechQueue.getIsSpeaking()
   }
 
   onTranscript(cb: (text: string, isFinal: boolean) => void): () => void {
@@ -179,6 +212,13 @@ export class VoiceManager {
     this.onErrorCallbacks.push(cb)
     return () => {
       this.onErrorCallbacks = this.onErrorCallbacks.filter((c) => c !== cb)
+    }
+  }
+
+  onSpeakingChange(cb: (speaking: boolean) => void): () => void {
+    this.onSpeakingChangeCallbacks.push(cb)
+    return () => {
+      this.onSpeakingChangeCallbacks = this.onSpeakingChangeCallbacks.filter((c) => c !== cb)
     }
   }
 

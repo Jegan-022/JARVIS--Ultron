@@ -14,21 +14,21 @@ interface NodeData {
 export function NeuralNetworkScene() {
   const pulsesRef = useRef<THREE.Points>(null)
 
-  // Generate 4 layers of neurons: Input, Hidden 1, Hidden 2, Output
+  // Generate 4 layers of neurons: Input (Sensor Input), Hidden 1 (Pattern Recognition), Hidden 2 (Semantic Reasoning), Output (Action Dispatch)
   const { nodes, connections } = useMemo(() => {
-    const layers = [4, 6, 6, 3]
+    const layers = [5, 7, 7, 4]
     const nodeList: NodeData[] = []
     const connList: [number, number][] = []
 
-    const layerDist = 6
+    const layerDist = 6.2
 
     layers.forEach((count, lIdx) => {
       const x = (lIdx - (layers.length - 1) / 2) * layerDist
-      const colors = ['#38bdf8', '#818cf8', '#c084fc', '#f43f5e']
+      const colors = ['#f59e0b', '#38bdf8', '#818cf8', '#10b981']
 
       for (let i = 0; i < count; i++) {
-        const y = (i - (count - 1) / 2) * 2.8
-        const z = Math.sin((i + lIdx) * 1.5) * 1.5
+        const y = (i - (count - 1) / 2) * 2.6
+        const z = Math.sin((i + lIdx) * 1.5) * 1.8
         nodeList.push({
           id: `neuron-L${lIdx}-N${i}`,
           layer: lIdx,
@@ -76,8 +76,8 @@ export function NeuralNetworkScene() {
     return pos
   }, [nodes, connections])
 
-  // Synaptic firing pulses
-  const pulseCount = 40
+  // Synaptic firing pulses (80 active traveling pulses)
+  const pulseCount = 80
   const pulseData = useMemo(() => {
     const data = []
     for (let i = 0; i < pulseCount; i++) {
@@ -85,11 +85,11 @@ export function NeuralNetworkScene() {
       data.push({
         connIdx,
         progress: Math.random(),
-        speed: 0.4 + Math.random() * 0.8,
+        speed: 0.5 + Math.random() * 0.9,
       })
     }
     return data
-  }, [connections])
+  }, [connections, pulseCount])
 
   const pulsePositions = useMemo(() => new Float32Array(pulseCount * 3), [pulseCount])
 
@@ -130,7 +130,7 @@ export function NeuralNetworkScene() {
             args={[linePositions, 3]}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#38bdf8" transparent opacity={0.2} blending={THREE.AdditiveBlending} />
+        <lineBasicMaterial color="#f59e0b" transparent opacity={0.22} blending={THREE.AdditiveBlending} />
       </lineSegments>
 
       {/* Synaptic Electrical Firing Pulses */}
@@ -141,7 +141,7 @@ export function NeuralNetworkScene() {
             args={[pulsePositions, 3]}
           />
         </bufferGeometry>
-        <pointsMaterial color="#00ffaa" size={0.35} transparent opacity={0.9} blending={THREE.AdditiveBlending} />
+        <pointsMaterial color="#38bdf8" size={0.4} transparent opacity={0.95} blending={THREE.AdditiveBlending} />
       </points>
 
       {/* Interactive Neural Nodes */}
@@ -150,9 +150,9 @@ export function NeuralNetworkScene() {
           key={node.id}
           meta={{
             id: node.id,
-            name: `Neuron L${node.layer}-${node.index}`,
+            name: `J.A.R.V.I.S. Synapse L${node.layer}-${node.index}`,
             type: 'neuron',
-            description: `Neural activation node in layer ${node.layer}. Synaptic weight: 0.${(node.layer + 1) * 23}.`,
+            description: `Cognitive activation node in Layer ${node.layer + 1}. Firing frequency: ${(node.layer + 1) * 44} Hz.`,
             actions: ['select', 'information', 'activate'],
           }}
           initialPosition={node.position}
@@ -163,11 +163,11 @@ export function NeuralNetworkScene() {
             <meshStandardMaterial
               color={node.color}
               emissive={node.color}
-              emissiveIntensity={0.6}
-              roughness={0.3}
+              emissiveIntensity={0.65}
+              roughness={0.25}
             />
           </mesh>
-          <pointLight color={node.color} intensity={0.8} distance={2.5} />
+          <pointLight color={node.color} intensity={0.9} distance={3.0} />
         </DraggableObject>
       ))}
     </group>

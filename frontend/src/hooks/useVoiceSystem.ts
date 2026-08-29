@@ -8,6 +8,7 @@ export function useVoiceSystem() {
   const addTranscript = useSystemStore((s) => s.addTranscript)
   const setVoiceStatus = useSystemStore((s) => s.setVoiceStatus)
   const setSubsystem = useSystemStore((s) => s.setSubsystem)
+  const booted = useSystemStore((s) => s.booted)
   const isMounted = useRef(true)
 
   useEffect(() => {
@@ -22,17 +23,21 @@ export function useVoiceSystem() {
 
     const unsubCommand = voiceManager.onCommand(async (command) => {
       if (!isMounted.current) return
+
+      // Don't process commands while JARVIS is speaking (prevents feedback loop)
+      if (voiceManager.isSpeaking()) return
+
       setVoiceStatus('processing')
       setSubsystem('ai', SubsystemStatus.ONLINE)
 
       try {
         const result = await processVoiceCommand(command)
         if (result.spokenResponse) {
-          addTranscript('ultron', result.spokenResponse)
+          addTranscript('jarvis', result.spokenResponse)
         }
       } catch (err) {
         console.error('Error executing voice command:', err)
-        addTranscript('ultron', `Command execution failure: ${command}`)
+        addTranscript('jarvis', `My apologies, sir. I encountered an error processing: ${command}`)
       } finally {
         if (isMounted.current) {
           setVoiceStatus('listening')
@@ -48,11 +53,30 @@ export function useVoiceSystem() {
       }
     })
 
+    // Track speaking state for HUD indicator
+    const unsubSpeaking = voiceManager.onSpeakingChange((speaking) => {
+      if (!isMounted.current) return
+      setVoiceStatus(speaking ? 'speaking' : 'listening')
+    })
+
     return () => {
       isMounted.current = false
       unsubTranscript()
       unsubCommand()
       unsubError()
+      unsubSpeaking()
     }
   }, [addTranscript, setVoiceStatus, setSubsystem])
+
+  // Auto-start voice listening after boot completes
+  useEffect(() => {
+    if (!booted) return
+    // Small delay to let boot animation finish
+    const timer = window.setTimeout(() => {
+      // Don't auto-start mic — let user explicitly enable it for privacy
+      setSubsystem('voice', SubsystemStatus.STANDBY)
+      setSubsystem('ai', SubsystemStatus.ONLINE)
+    }, 500)
+    return () => window.clearTimeout(timer)
+  }, [booted, setSubsystem])
 }

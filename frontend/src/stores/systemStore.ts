@@ -4,7 +4,7 @@ import type { SubsystemMap, SystemStatusPayload } from '../types/system'
 
 export interface TranscriptEntry {
   id: string
-  speaker: 'user' | 'ultron'
+  speaker: 'user' | 'jarvis'
   text: string
   timestamp: string
 }
@@ -32,7 +32,7 @@ interface SystemStore {
   setMetrics: (metrics: SystemStatusPayload) => void
   setWebsocketStatus: (websocketStatus: SystemStore['websocketStatus']) => void
   setVoiceStatus: (status: 'idle' | 'listening' | 'speaking' | 'processing') => void
-  addTranscript: (speaker: 'user' | 'ultron', text: string) => void
+  addTranscript: (speaker: 'user' | 'jarvis', text: string) => void
   setTranscript: (user: string, response: string) => void
   setDevices: (devices: IoTDevice[]) => void
   updateDeviceState: (id: string, state: IoTDevice['state']) => void
@@ -40,9 +40,9 @@ interface SystemStore {
 }
 
 const INITIAL_DEVICES: IoTDevice[] = [
-  { id: 'light.living_room', name: 'Room Ambient Light', state: 'on', type: 'light' },
+  { id: 'light.living_room', name: 'Arc Reactor Ambient', state: 'on', type: 'light' },
   { id: 'switch.relay_core', name: 'Main Power Relay', state: 'on', type: 'relay' },
-  { id: 'light.command_deck', name: 'Deck Halo Luminary', state: 'on', type: 'light' },
+  { id: 'light.command_deck', name: 'Command Deck Halo', state: 'on', type: 'light' },
   { id: 'sensor.esp32_node', name: 'ESP32 Telemetry Node', state: 'active', type: 'sensor' },
 ]
 
@@ -63,13 +63,13 @@ export const useSystemStore = create<SystemStore>((set) => ({
   transcripts: [
     {
       id: 'init-1',
-      speaker: 'ultron',
-      text: 'ULTRON Multimodal Core online. Spatial vision and voice systems standing by.',
+      speaker: 'jarvis',
+      text: 'Good day, sir. J.A.R.V.I.S. systems are online. All spatial and voice subsystems standing by for your command.',
       timestamp: new Date().toLocaleTimeString(),
     },
   ],
   lastTranscript: '',
-  lastResponse: 'ULTRON Multimodal Core online. Ready for command.',
+  lastResponse: 'J.A.R.V.I.S. online. At your service, sir.',
   devices: INITIAL_DEVICES,
   sensorData: { temperature: 24.5, humidity: 48 },
 
@@ -93,7 +93,7 @@ export const useSystemStore = create<SystemStore>((set) => ({
         },
       ],
       lastTranscript: speaker === 'user' ? text : state.lastTranscript,
-      lastResponse: speaker === 'ultron' ? text : state.lastResponse,
+      lastResponse: speaker === 'jarvis' ? text : state.lastResponse,
     })),
   setTranscript: (lastTranscript, lastResponse) =>
     set((state) => ({
@@ -108,8 +108,8 @@ export const useSystemStore = create<SystemStore>((set) => ({
           timestamp: new Date().toLocaleTimeString(),
         },
         {
-          id: `t-o-${Date.now()}`,
-          speaker: 'ultron',
+          id: `t-j-${Date.now()}`,
+          speaker: 'jarvis',
           text: lastResponse,
           timestamp: new Date().toLocaleTimeString(),
         },

@@ -5,27 +5,35 @@ import { DraggableObject } from './DraggableObject'
 
 const REGIONS = [
   {
-    id: 'region-tokyo',
-    name: 'Tokyo Hub',
-    lat: 35.6762,
-    lon: 139.6503,
-    description: 'Asia-Pacific Primary Quantum Data Node.',
-    actions: ['select', 'information', 'connect'],
-  },
-  {
-    id: 'region-london',
-    name: 'London Terminal',
-    lat: 51.5074,
-    lon: -0.1278,
-    description: 'European Relay & Automation Gateway.',
+    id: 'region-malibu',
+    name: 'Stark Malibu Point',
+    lat: 34.0259,
+    lon: -118.7798,
+    description: 'Primary J.A.R.V.I.S. Core Datacenter & Workshop.',
     actions: ['select', 'information', 'connect'],
   },
   {
     id: 'region-newyork',
-    name: 'New York Matrix',
+    name: 'Stark Tower NYC',
     lat: 40.7128,
     lon: -74.006,
-    description: 'North American High-Speed Neural Exchange.',
+    description: 'Stark Industries Global Headquarters & Arc Reactor Node.',
+    actions: ['select', 'information', 'connect'],
+  },
+  {
+    id: 'region-london',
+    name: 'London Relay Hub',
+    lat: 51.5074,
+    lon: -0.1278,
+    description: 'European Neural Telemetry & Automation Gateway.',
+    actions: ['select', 'information', 'connect'],
+  },
+  {
+    id: 'region-tokyo',
+    name: 'Tokyo Quantum Matrix',
+    lat: 35.6762,
+    lon: 139.6503,
+    description: 'Asia-Pacific High-Speed Optical Computing Cluster.',
     actions: ['select', 'information', 'connect'],
   },
   {
@@ -33,15 +41,7 @@ const REGIONS = [
     name: 'Bengaluru Tech Node',
     lat: 12.9716,
     lon: 77.5946,
-    description: 'South Asia Core Computational Cluster.',
-    actions: ['select', 'information', 'connect'],
-  },
-  {
-    id: 'region-sydney',
-    name: 'Sydney Terminal',
-    lat: -33.8688,
-    lon: 151.2093,
-    description: 'Oceania Deep-Space Sensor Station.',
+    description: 'South Asia Core Computational Array.',
     actions: ['select', 'information', 'connect'],
   },
 ]
@@ -58,7 +58,9 @@ function latLonToVector3(lat: number, lon: number, radius: number): [number, num
 export function EarthScene() {
   const earthRef = useRef<THREE.Group>(null)
   const cloudsRef = useRef<THREE.Mesh>(null)
+  const moonPivotRef = useRef<THREE.Group>(null)
   const issOrbitRef = useRef<THREE.Group>(null)
+  const satOrbitRef = useRef<THREE.Group>(null)
 
   useFrame((_, delta) => {
     if (earthRef.current) {
@@ -67,17 +69,23 @@ export function EarthScene() {
     if (cloudsRef.current) {
       cloudsRef.current.rotation.y += delta * 0.055
     }
+    if (moonPivotRef.current) {
+      moonPivotRef.current.rotation.y += delta * 0.02
+    }
     if (issOrbitRef.current) {
-      issOrbitRef.current.rotation.y += delta * 0.2
-      issOrbitRef.current.rotation.x = Math.sin(Date.now() * 0.0005) * 0.4
+      issOrbitRef.current.rotation.y += delta * 0.18
+      issOrbitRef.current.rotation.x = Math.sin(Date.now() * 0.0005) * 0.35
+    }
+    if (satOrbitRef.current) {
+      satOrbitRef.current.rotation.y -= delta * 0.12
     }
   })
 
   return (
     <group>
       {/* Primary directional sun simulation light */}
-      <directionalLight position={[20, 10, 15]} intensity={2.0} color="#ffffff" />
-      <ambientLight intensity={0.12} />
+      <directionalLight position={[25, 12, 18]} intensity={2.5} color="#ffffff" />
+      <ambientLight intensity={0.15} />
 
       {/* Earth Body */}
       <group ref={earthRef}>
@@ -85,30 +93,41 @@ export function EarthScene() {
         <mesh>
           <sphereGeometry args={[5, 64, 64]} />
           <meshStandardMaterial
-            color="#1e3a8a"
+            color="#0c4a6e"
             emissive="#0284c7"
-            emissiveIntensity={0.15}
-            roughness={0.5}
-            metalness={0.1}
+            emissiveIntensity={0.12}
+            roughness={0.4}
+            metalness={0.2}
+          />
+        </mesh>
+
+        {/* Night Lights Simulation */}
+        <mesh scale={1.002}>
+          <sphereGeometry args={[5, 48, 48]} />
+          <meshBasicMaterial
+            color="#f59e0b"
+            transparent
+            opacity={0.18}
+            blending={THREE.AdditiveBlending}
           />
         </mesh>
 
         {/* Cloud Layer */}
-        <mesh ref={cloudsRef} scale={1.02}>
+        <mesh ref={cloudsRef} scale={1.025}>
           <sphereGeometry args={[5, 48, 48]} />
           <meshStandardMaterial
             color="#ffffff"
             transparent
-            opacity={0.35}
+            opacity={0.32}
             roughness={0.9}
             blending={THREE.AdditiveBlending}
           />
         </mesh>
 
-        {/* Atmosphere Halo */}
-        <mesh scale={1.08}>
+        {/* Outer Atmospheric Halo (Fresnel effect) */}
+        <mesh scale={1.09}>
           <sphereGeometry args={[5, 32, 32]} />
-          <meshBasicMaterial color="#38bdf8" transparent opacity={0.12} side={THREE.BackSide} />
+          <meshBasicMaterial color="#38bdf8" transparent opacity={0.14} side={THREE.BackSide} />
         </mesh>
 
         {/* Region Command Pins */}
@@ -125,37 +144,60 @@ export function EarthScene() {
                 actions: region.actions,
               }}
               initialPosition={pos}
-              scale={0.22}
+              scale={0.24}
             >
               <mesh>
                 <sphereGeometry args={[1, 16, 16]} />
-                <meshBasicMaterial color="#00ffaa" />
+                <meshBasicMaterial color="#f59e0b" />
               </mesh>
-              {/* Pulsing Beacon Light */}
-              <pointLight color="#00ffaa" intensity={1.2} distance={3} />
+              <pointLight color="#f59e0b" intensity={1.8} distance={3.5} />
             </DraggableObject>
           )
         })}
       </group>
 
-      {/* Orbiting Space Station ISS */}
+      {/* Orbiting Moon */}
+      <group ref={moonPivotRef}>
+        <DraggableObject
+          meta={{
+            id: 'moon',
+            name: 'The Moon',
+            type: 'satellite',
+            description: "Earth's sole natural satellite. Mean radius: 1,737 km. Tidally locked in synchronous rotation.",
+            actions: ['select', 'information', 'zoom'],
+          }}
+          initialPosition={[11.5, 0.5, 0]}
+          scale={0.55}
+        >
+          <mesh>
+            <sphereGeometry args={[1, 32, 32]} />
+            <meshStandardMaterial color="#cbd5e1" roughness={0.9} metalness={0.05} />
+          </mesh>
+        </DraggableObject>
+        {/* Moon orbit line */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[11.46, 11.54, 96]} />
+          <meshBasicMaterial color="#94a3b8" transparent opacity={0.12} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+
+      {/* ISS / Space Station Alpha */}
       <group ref={issOrbitRef}>
         <DraggableObject
           meta={{
             id: 'iss-station',
             name: 'Orbital Station Alpha',
             type: 'satellite',
-            description: 'Low-Earth orbit relay satellite and sensor array.',
+            description: 'Low-Earth orbit relay station and Stark sensor array at 408 km altitude.',
             actions: ['select', 'information', 'zoom'],
           }}
-          initialPosition={[7.5, 0, 0]}
+          initialPosition={[7.2, 0, 0]}
           scale={0.35}
         >
           <mesh>
             <boxGeometry args={[1.2, 0.4, 0.4]} />
-            <meshStandardMaterial color="#e2e8f0" metalness={0.8} roughness={0.2} />
+            <meshStandardMaterial color="#f1f5f9" metalness={0.8} roughness={0.2} />
           </mesh>
-          {/* Solar Panels */}
           <mesh position={[0, 0, 0.8]} rotation={[Math.PI / 4, 0, 0]}>
             <boxGeometry args={[0.8, 0.05, 1.2]} />
             <meshBasicMaterial color="#0284c7" />
@@ -165,6 +207,20 @@ export function EarthScene() {
             <meshBasicMaterial color="#0284c7" />
           </mesh>
         </DraggableObject>
+      </group>
+
+      {/* Satellite Constellation */}
+      <group ref={satOrbitRef}>
+        {[0, 1, 2].map((idx) => {
+          const angle = (idx * Math.PI * 2) / 3
+          const r = 8.5
+          return (
+            <mesh key={idx} position={[Math.cos(angle) * r, Math.sin(angle) * 1.5, Math.sin(angle) * r]} scale={0.12}>
+              <octahedronGeometry args={[1, 0]} />
+              <meshBasicMaterial color="#38bdf8" />
+            </mesh>
+          )
+        })}
       </group>
     </group>
   )

@@ -4,11 +4,12 @@ import { useSystemStore } from '../stores/systemStore'
 import { SubsystemStatus } from '../types/system'
 
 const LINES = [
-  { key: 'spatial', label: 'SPATIAL ENGINE', status: SubsystemStatus.ONLINE },
-  { key: 'vision', label: 'VISION PIPELINE', status: SubsystemStatus.ONLINE },
-  { key: 'voice', label: 'VOICE ASSISTANT', status: SubsystemStatus.ONLINE },
-  { key: 'ai', label: 'AI REASONING CORE', status: SubsystemStatus.ONLINE },
-  { key: 'network', label: 'CORE NETWORK', status: 'probe' as const },
+  { key: 'spatial', label: 'ARC REACTOR CORE', status: SubsystemStatus.ONLINE },
+  { key: 'vision', label: 'NEURAL VISION ARRAY', status: SubsystemStatus.ONLINE },
+  { key: 'voice', label: 'SPEECH SYNTHESIS ENGINE', status: SubsystemStatus.ONLINE },
+  { key: 'ai', label: 'COGNITIVE REASONING MATRIX', status: SubsystemStatus.ONLINE },
+  { key: 'camera', label: 'SPATIAL GESTURE TRACKER', status: SubsystemStatus.ONLINE },
+  { key: 'network', label: 'STARK SECURE NETWORK', status: 'probe' as const },
 ] as const
 
 export function BootSequence() {
@@ -37,13 +38,13 @@ export function BootSequence() {
           const line = LINES[index]
           if (line.key === 'network') return
           setSubsystem(line.key, line.status)
-        }, 300 + index * 220),
+        }, 300 + index * 280),
       )
     })
     timers.push(
       window.setTimeout(() => {
         setBooted(true)
-      }, 300 + LINES.length * 220 + 250),
+      }, 300 + LINES.length * 280 + 350),
     )
     return () => timers.forEach((id) => window.clearTimeout(id))
   }, [setBooted, setSubsystem])
@@ -52,20 +53,25 @@ export function BootSequence() {
     <motion.div
       className="boot-overlay cursor-pointer"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.8 } }}
       animate={{ opacity: 1 }}
       onClick={skipBoot}
     >
       <div className="boot-panel">
         {showTitle ? (
           <div className="flex items-center justify-between mb-6">
-            <p className="boot-title m-0 text-cyan-400 font-mono">INITIALIZING ULTRON...</p>
+            <div>
+              <p className="boot-title m-0 text-amber-400 font-mono">J.A.R.V.I.S.</p>
+              <p className="text-[10px] text-slate-400 font-mono tracking-[0.3em] mt-1">
+                JUST A RATHER VERY INTELLIGENT SYSTEM
+              </p>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 skipBoot()
               }}
-              className="px-2 py-1 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 border border-cyan-500/40 text-[10px] font-mono rounded"
+              className="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-500/40 text-[10px] font-mono rounded"
             >
               SKIP [ENTER]
             </button>
@@ -92,8 +98,8 @@ export function BootSequence() {
           })}
         </ul>
         <div className="flex items-center justify-between mt-6 text-[11px] text-slate-400 font-mono">
-          <span>Multimodal 3D Spatial Computing Core</span>
-          <span className="text-cyan-400/80 underline text-[10px]">Click anywhere to enter</span>
+          <span>STARK INDUSTRIES — ADVANCED AI COMMAND INTERFACE</span>
+          <span className="text-amber-400/80 underline text-[10px]">Click anywhere to enter</span>
         </div>
       </div>
     </motion.div>

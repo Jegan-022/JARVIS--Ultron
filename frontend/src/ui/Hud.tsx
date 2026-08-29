@@ -14,6 +14,7 @@ import {
   Thermometer,
   Droplets,
   Zap,
+  Send,
 } from 'lucide-react'
 
 function StatusDot({ status }: { status: SubsystemStatus }) {
@@ -33,6 +34,7 @@ export function Hud() {
   const voiceStatus = useSystemStore((s) => s.voiceStatus)
   const setVoiceStatus = useSystemStore((s) => s.setVoiceStatus)
   const transcripts = useSystemStore((s) => s.transcripts)
+  const addTranscript = useSystemStore((s) => s.addTranscript)
   const devices = useSystemStore((s) => s.devices)
   const sensorData = useSystemStore((s) => s.sensorData)
 
@@ -48,6 +50,7 @@ export function Hud() {
 
   const [micActive, setMicActive] = useState(false)
   const [activeTab, setActiveTab] = useState<'activity' | 'devices'>('activity')
+  const [commandInput, setCommandInput] = useState('')
 
   const toggleMic = () => {
     if (micActive) {
@@ -65,6 +68,22 @@ export function Hud() {
     }
   }
 
+  const handleCommandSubmit = async () => {
+    const cmd = commandInput.trim()
+    if (!cmd) return
+    setCommandInput('')
+    addTranscript('user', cmd)
+    try {
+      const result = await processVoiceCommand(cmd)
+      if (result.spokenResponse) {
+        addTranscript('jarvis', result.spokenResponse)
+      }
+    } catch (err) {
+      console.error('Command error:', err)
+      addTranscript('jarvis', 'Apologies, sir. That command encountered an error.')
+    }
+  }
+
   const scenes = SceneManager.getScenes()
 
   return (
@@ -73,17 +92,17 @@ export function Hud() {
       <header className="hud-top">
         <div className="flex items-center gap-3">
           <div>
-            <p className="hud-mark">ULTRON CORE</p>
-            <p className="hud-sub">MULTIMODAL 3D SPATIAL AI INTERFACE</p>
+            <p className="hud-mark">J.A.R.V.I.S.</p>
+            <p className="hud-sub">ADVANCED AI COMMAND INTERFACE</p>
           </div>
-          <div className="hidden md:flex items-center gap-1 ml-4 bg-slate-950/70 p-1 rounded border border-cyan-500/20 backdrop-blur-md">
+          <div className="hidden md:flex items-center gap-1 ml-4 bg-slate-950/70 p-1 rounded border border-amber-500/20 backdrop-blur-md">
             {scenes.map((s) => (
               <button
                 key={s.id}
                 onClick={() => SceneManager.switch(s.id as SceneIdType)}
                 className={`px-2.5 py-1 text-[11px] font-mono rounded transition-all ${
                   sceneId === s.id
-                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/50 shadow-sm shadow-cyan-500/30'
+                    ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
@@ -99,26 +118,26 @@ export function Hud() {
             className={`flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs font-semibold border transition-all ${
               micActive
                 ? 'bg-red-500/20 border-red-500/60 text-red-300 shadow-md shadow-red-500/20 animate-pulse'
-                : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-cyan-500/50'
+                : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:border-amber-500/50'
             }`}
             title="Toggle Microphone & Voice Assistant"
           >
             {micActive ? <Mic className="w-3.5 h-3.5 text-red-400" /> : <MicOff className="w-3.5 h-3.5 text-slate-400" />}
-            <span>{micActive ? 'WAKE: ULTRON' : 'MIC STANDBY'}</span>
+            <span>{micActive ? 'WAKE: JARVIS' : 'MIC STANDBY'}</span>
           </button>
 
           <div className="flex items-center gap-1.5">
             <span>CORE</span>
             <StatusDot status={SubsystemStatus.ONLINE} />
-            <strong className="text-cyan-400">ONLINE</strong>
+            <strong className="text-amber-400">ONLINE</strong>
           </div>
         </div>
       </header>
 
       {/* LEFT SIDEBAR: SUBSYSTEMS & VISION TRACKER */}
       <aside className="hud-left flex flex-col gap-2.5 max-w-[220px]">
-        <div className="bg-slate-950/80 backdrop-blur-md p-2.5 rounded-lg border border-cyan-500/20 shadow-lg">
-          <p className="text-[10px] font-mono font-bold text-cyan-400 tracking-wider mb-2 border-b border-cyan-500/15 pb-1">
+        <div className="bg-slate-950/80 backdrop-blur-md p-2.5 rounded-lg border border-amber-500/20 shadow-lg">
+          <p className="text-[10px] font-mono font-bold text-amber-400 tracking-wider mb-2 border-b border-amber-500/15 pb-1">
             SUBSYSTEM TELEMETRY
           </p>
           <div className="flex flex-col gap-1">
@@ -133,11 +152,11 @@ export function Hud() {
               detail={micActive ? voiceStatus.toUpperCase() : 'STANDBY'}
             />
             <Row label="AI CORE" status={subsystems.ai || SubsystemStatus.ONLINE} detail="ONLINE" />
-            <Row label="SPATIAL" status={SubsystemStatus.ONLINE} detail="60 FPS" />
+            <Row label="SPATIAL" status={SubsystemStatus.ONLINE} detail={`${fps || 60} FPS`} />
             <Row
               label="NETWORK"
               status={subsystems.network}
-              detail={subsystems.network === SubsystemStatus.ONLINE ? 'CORE LINK' : 'LOCAL'}
+              detail={subsystems.network === SubsystemStatus.ONLINE ? 'CONNECTED' : 'LOCAL'}
             />
             <Row label="DEVICES" status={SubsystemStatus.ONLINE} detail={`${devices.length} NODES`} />
           </div>
@@ -149,12 +168,12 @@ export function Hud() {
 
       {/* RIGHT SIDEBAR: MULTIMODAL ACTIVITY, SMART HOME, QUICK TOOLS */}
       <aside className="hud-right max-w-[260px] flex flex-col gap-2.5">
-        <div className="flex items-center justify-between border-b border-cyan-500/20 pb-1">
+        <div className="flex items-center justify-between border-b border-amber-500/20 pb-1">
           <div className="flex gap-1">
             <button
               onClick={() => setActiveTab('activity')}
               className={`px-2 py-0.5 text-[10px] font-mono rounded ${
-                activeTab === 'activity' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'text-slate-400'
+                activeTab === 'activity' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-slate-400'
               }`}
             >
               ACTIVITY
@@ -162,13 +181,13 @@ export function Hud() {
             <button
               onClick={() => setActiveTab('devices')}
               className={`px-2 py-0.5 text-[10px] font-mono rounded ${
-                activeTab === 'devices' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' : 'text-slate-400'
+                activeTab === 'devices' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-slate-400'
               }`}
             >
               DEVICES
             </button>
           </div>
-          <span className="text-[10px] font-mono text-cyan-400 font-bold">{fps || 60} FPS</span>
+          <span className="text-[10px] font-mono text-amber-400 font-bold">{fps || 60} FPS</span>
         </div>
 
         {activeTab === 'activity' && (
@@ -208,14 +227,14 @@ export function Hud() {
                     LOCKED
                   </span>
                 </div>
-                <p className="text-[10px] text-cyan-400 font-mono mt-0.5">TYPE: {selected.type.toUpperCase()}</p>
+                <p className="text-[10px] text-amber-400 font-mono mt-0.5">TYPE: {selected.type.toUpperCase()}</p>
                 <p className="object-desc">{selected.description}</p>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {selected.actions.map((act) => (
                     <button
                       key={act}
                       onClick={() => processVoiceCommand(`${act} ${selected.name}`)}
-                      className="px-2 py-0.5 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/30 text-cyan-300 text-[9px] rounded font-mono"
+                      className="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/30 text-amber-300 text-[9px] rounded font-mono"
                     >
                       {act.toUpperCase()}
                     </button>
@@ -233,12 +252,12 @@ export function Hud() {
         {activeTab === 'devices' && (
           <div className="flex flex-col gap-2">
             {/* Real-time ESP32 Sensor HUD Card */}
-            <div className="bg-slate-900/80 p-2 rounded border border-cyan-500/25 flex items-center justify-around font-mono text-xs">
+            <div className="bg-slate-900/80 p-2 rounded border border-amber-500/25 flex items-center justify-around font-mono text-xs">
               <div className="flex items-center gap-1.5 text-amber-300">
                 <Thermometer className="w-4 h-4 text-amber-400" />
                 <span>{sensorData.temperature.toFixed(1)}°C</span>
               </div>
-              <div className="h-4 w-px bg-cyan-500/30" />
+              <div className="h-4 w-px bg-amber-500/30" />
               <div className="flex items-center gap-1.5 text-cyan-300">
                 <Droplets className="w-4 h-4 text-cyan-400" />
                 <span>{sensorData.humidity.toFixed(0)}%</span>
@@ -250,7 +269,7 @@ export function Hud() {
               {devices.map((dev) => (
                 <div
                   key={dev.id}
-                  className="flex items-center justify-between p-2 rounded bg-slate-950/60 border border-cyan-500/20 text-[11px] font-mono"
+                  className="flex items-center justify-between p-2 rounded bg-slate-950/60 border border-amber-500/20 text-[11px] font-mono"
                 >
                   <div className="flex items-center gap-2">
                     <Zap className={`w-3.5 h-3.5 ${dev.state === 'on' ? 'text-amber-400' : 'text-slate-500'}`} />
@@ -277,17 +296,34 @@ export function Hud() {
         {paused ? <p className="phase-note">SIMULATION PAUSED (Press Space to resume)</p> : null}
       </aside>
 
-      {/* BOTTOM FOOTER: REAL-TIME VOICE TRANSCRIPTS & MULTIMODAL CHAT STREAM */}
-      <footer className="hud-bottom flex flex-col gap-1 max-h-28 overflow-hidden font-mono">
-        <div className="flex flex-col gap-1 overflow-y-auto pr-2 max-h-20">
-          {transcripts.slice(-2).map((t) => (
+      {/* BOTTOM FOOTER: VOICE TRANSCRIPTS & COMMAND INPUT */}
+      <footer className="hud-bottom flex flex-col gap-1 max-h-32 overflow-hidden font-mono">
+        <div className="flex flex-col gap-1 overflow-y-auto pr-2 max-h-16">
+          {transcripts.slice(-3).map((t) => (
             <p key={t.id} className="flex items-baseline gap-2 text-xs leading-relaxed">
               <span className={t.speaker === 'user' ? 'text-cyan-400 font-bold' : 'text-amber-400 font-bold'}>
-                {t.speaker === 'user' ? 'OPERATOR:' : 'ULTRON:'}
+                {t.speaker === 'user' ? 'YOU:' : 'JARVIS:'}
               </span>
               <span className="text-slate-200">{t.text}</span>
             </p>
           ))}
+        </div>
+        {/* Text Command Input */}
+        <div className="flex items-center gap-2 mt-1">
+          <input
+            type="text"
+            value={commandInput}
+            onChange={(e) => setCommandInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCommandSubmit() }}
+            placeholder="Type a command for J.A.R.V.I.S..."
+            className="flex-1 bg-slate-900/80 border border-amber-500/30 rounded px-3 py-1.5 text-xs text-slate-200 font-mono placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60 transition-colors"
+          />
+          <button
+            onClick={handleCommandSubmit}
+            className="p-1.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/40 rounded text-amber-300 transition-colors"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
         </div>
       </footer>
     </div>
@@ -331,7 +367,7 @@ export function DebugOverlay() {
 
   return (
     <pre className="debug-overlay">
-      {`DEBUG OVERLAY [F3]
+      {`J.A.R.V.I.S. DEBUG [F3]
 FPS: ${fps}
 SCENE: ${sceneId}
 HAND DETECTED: ${handResult.detected ? `YES (${handResult.handedness})` : 'NO'}

@@ -41,36 +41,44 @@ export function VirtualCursor() {
     const worldDest = camera.position.clone().add(dir.multiplyScalar(planeDist))
 
     // Exponential smoothing in world space
-    currentPos.current.lerp(worldDest, 1 - Math.exp(-20 * delta))
+    currentPos.current.lerp(worldDest, 1 - Math.exp(-22 * delta))
     groupRef.current.position.copy(currentPos.current)
     groupRef.current.quaternion.copy(camera.quaternion)
 
     // Dynamic scale and animation based on interaction state
     if (ringRef.current) {
       let targetScale = 1.0
-      let ringColor = '#00f0ff'
+      let ringColor = '#f59e0b'
 
       switch (interactionState) {
         case InteractionState.PINCHING:
           targetScale = 0.55 + Math.min(1.0, cursor.pinchDistance * 5) * 0.45
-          ringColor = '#00ffaa'
+          ringColor = '#38bdf8'
           break
         case InteractionState.GRABBING:
           targetScale = 1.45
-          ringColor = '#ffaa00'
+          ringColor = '#ef4444'
+          break
+        case InteractionState.CONFIRMING:
+          targetScale = 1.15
+          ringColor = '#10b981'
+          break
+        case InteractionState.SCENE_SWITCHING:
+          targetScale = 1.35
+          ringColor = '#a855f7'
           break
         case InteractionState.POINTING:
         case InteractionState.ROTATING:
           targetScale = 1.0
-          ringColor = '#38bdf8'
+          ringColor = '#f59e0b'
           break
         case InteractionState.ZOOMING:
           targetScale = 1.25
-          ringColor = '#a855f7'
+          ringColor = '#818cf8'
           break
         default:
           targetScale = 1.0
-          ringColor = '#00f0ff'
+          ringColor = '#f59e0b'
       }
 
       ringRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 15)
@@ -98,29 +106,29 @@ export function VirtualCursor() {
       {/* Central glowing core */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[0.08, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.95} />
       </mesh>
 
       {/* Primary HUD reticle ring */}
       <mesh ref={ringRef}>
         <ringGeometry args={[0.22, 0.26, 32]} />
-        <meshBasicMaterial color="#00f0ff" transparent opacity={0.8} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#f59e0b" transparent opacity={0.85} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Outer corner marks / brackets */}
       <mesh rotation={[0, 0, Math.PI / 4]}>
         <ringGeometry args={[0.34, 0.36, 4]} />
-        <meshBasicMaterial color="#38bdf8" transparent opacity={0.5} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#fbbf24" transparent opacity={0.5} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Selected object lock-on ring */}
       <mesh ref={targetRingRef} visible={false}>
         <ringGeometry args={[0.42, 0.46, 6]} />
-        <meshBasicMaterial color="#f59e0b" transparent opacity={0.9} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#10b981" transparent opacity={0.9} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Point light attached to cursor for atmospheric glow on nearby 3D objects */}
-      <pointLight color="#00f0ff" intensity={1.5} distance={5} />
+      <pointLight color="#f59e0b" intensity={2.0} distance={6} />
     </group>
   )
 }

@@ -6,6 +6,13 @@ export const GestureType = {
   OPEN_PALM: 'OPEN_PALM',
   FIST: 'FIST',
   TWO_FINGER: 'TWO_FINGER',
+  THREE_FINGERS: 'THREE_FINGERS',
+  FOUR_FINGERS: 'FOUR_FINGERS',
+  THUMBS_UP: 'THUMBS_UP',
+  THUMBS_DOWN: 'THUMBS_DOWN',
+  PEACE_SIGN: 'PEACE_SIGN',
+  FINGER_GUN: 'FINGER_GUN',
+  WAVE: 'WAVE',
   SWIPE_LEFT: 'SWIPE_LEFT',
   SWIPE_RIGHT: 'SWIPE_RIGHT',
   SWIPE_UP: 'SWIPE_UP',
@@ -23,6 +30,8 @@ export const InteractionState = {
   ZOOMING: 'ZOOMING',
   SELECTING: 'SELECTING',
   VOICE_OVERRIDE: 'VOICE_OVERRIDE',
+  CONFIRMING: 'CONFIRMING',
+  SCENE_SWITCHING: 'SCENE_SWITCHING',
 } as const
 
 export type InteractionState = (typeof InteractionState)[keyof typeof InteractionState]

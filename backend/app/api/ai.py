@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
-from app.ai.agent import ultron_agent
+from app.ai.agent import jarvis_agent
 from app.tools.registry import tool_registry
 
 router = APIRouter(prefix="/ai", tags=["AI Agent"])
@@ -31,7 +31,7 @@ async def process_command(req: AICommandRequest) -> dict[str, Any]:
         "cursorPosition": req.cursorPosition,
         "cameraPosition": req.cameraPosition,
     }
-    return await ultron_agent.process_command(req.command, context=context)
+    return await jarvis_agent.process_command(req.command, context=context)
 
 
 @router.get("/tools")
