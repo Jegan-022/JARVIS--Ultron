@@ -1,5 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
-const WS_BASE = import.meta.env.VITE_WS_BASE ?? 'ws://127.0.0.1:8000'
+// Use VITE_API_BASE / VITE_WS_BASE env vars in production (set them in Vercel dashboard).
+// Falls back to relative URLs so the app doesn't hard-crash when no backend is reachable.
+const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+const WS_BASE = import.meta.env.VITE_WS_BASE ?? `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`
 
 export interface AICommandPayload {
   command: string
